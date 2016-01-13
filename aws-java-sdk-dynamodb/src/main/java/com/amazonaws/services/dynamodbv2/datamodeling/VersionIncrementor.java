@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * Helper class for incrementing version attributes.
  */
-class VersionIncrementor {
+public class VersionIncrementor {
 
     private final Map<Method, Incrementor> cache =
             new HashMap<Method, Incrementor>();

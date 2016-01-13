@@ -25,9 +25,9 @@ import java.lang.reflect.Type;
  * Utilities for reflecting field or method annotations in a DynamoDB table
  * POJO.
  */
-class ReflectionUtils {
+public class ReflectionUtils {
 
-    static Object safeInvoke(
+    public static Object safeInvoke(
             Method method,
             Object object,
             Object... arguments) {
@@ -58,7 +58,7 @@ class ReflectionUtils {
      *            True if the returned field name should be in camel-case, i.e.
      *            the first letter is lower-cased.
      */
-    static String getFieldNameByGetter(Method getter, boolean forceCamelCase) {
+    public static String getFieldNameByGetter(Method getter, boolean forceCamelCase) {
         String getterName = getter.getName();
 
         String fieldNameWithUpperCamelCase = "";
@@ -93,7 +93,7 @@ class ReflectionUtils {
      * @param fieldName
      *            The case-sensitive name of the field to be searched.
      */
-    static Field getClassFieldByName(Class<?> clazz, String fieldName) {
+    public static Field getClassFieldByName(Class<?> clazz, String fieldName) {
         try {
             return clazz.getDeclaredField(fieldName);
         } catch (SecurityException e) {
@@ -109,7 +109,7 @@ class ReflectionUtils {
      * either the specified getter method or its corresponding class field.
      * Returns the annotation if it is found, else null.
      */
-    static <T extends Annotation> T getAnnotationFromGetterOrField(
+    public static <T extends Annotation> T getAnnotationFromGetterOrField(
             Method getter, Class<T> annotationClass) {
         // Check annotation on the getter method
         T onGetter = getter.getAnnotation(annotationClass);
@@ -132,7 +132,7 @@ class ReflectionUtils {
      * Returns true if an annotation for the specified type is found on the
      * getter method or its corresponding class field.
      */
-    static <T extends Annotation> boolean getterOrFieldHasAnnotation(
+    public static <T extends Annotation> boolean getterOrFieldHasAnnotation(
             Method getter, Class<T> annotationClass) {
         return getAnnotationFromGetterOrField(getter, annotationClass) != null;
     }
@@ -140,7 +140,7 @@ class ReflectionUtils {
     /**
      * Resolve the raw class for the given type.
      */
-    static Class<?> resolveClass(Type type) {
+    public static Class<?> resolveClass(Type type) {
         Type localType = type;
 
         if (localType instanceof ParameterizedType) {
