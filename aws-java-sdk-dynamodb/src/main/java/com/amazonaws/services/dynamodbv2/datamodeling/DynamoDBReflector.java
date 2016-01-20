@@ -33,6 +33,7 @@ public class DynamoDBReflector {
     private final Map<Class<?>, Collection<Method>> getterCache = new HashMap<Class<?>, Collection<Method>>();
     private final Map<Class<?>, Method> primaryHashKeyGetterCache = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Method> primaryRangeKeyGetterCache = new HashMap<Class<?>, Method>();
+    private final Map<Class<?>, Collection<Method>> primaryKeyGetterCache = new HashMap<Class<?>, Collection<Method>>();
 
     /*
      * All caches keyed by a Method use the getter for a particular mapped
@@ -118,19 +119,22 @@ public class DynamoDBReflector {
      * Returns all annotated {@link DynamoDBHashKey} and
      * {@link DynamoDBRangeKey} getters for the class given, throwing an
      * exception if there isn't one.
-     *
-     * TODO: caching
      */
     public <T> Collection<Method> getPrimaryKeyGetters(Class<T> clazz) {
-        List<Method> keyGetters = new LinkedList<Method>();
-        for (Method getter : getRelevantGetters(clazz)) {
-            if (ReflectionUtils.getterOrFieldHasAnnotation(getter, DynamoDBHashKey.class)
-                    || ReflectionUtils.getterOrFieldHasAnnotation(getter, DynamoDBRangeKey.class)) {
-                keyGetters.add(getter);
+        synchronized (primaryKeyGetterCache) {
+            if ( !primaryKeyGetterCache.containsKey(clazz) ) {
+                List<Method> keyGetters = new LinkedList<Method>();
+                for (Method getter : getRelevantGetters(clazz)) {
+                    if (ReflectionUtils.getterOrFieldHasAnnotation(getter, DynamoDBHashKey.class)
+                            || ReflectionUtils.getterOrFieldHasAnnotation(getter, DynamoDBRangeKey.class)) {
+                        keyGetters.add(getter);
+                    }
+                }
+                primaryKeyGetterCache.put(clazz, keyGetters);
             }
-        }
 
-        return keyGetters;
+            return primaryKeyGetterCache.get(clazz);
+        }
     }
 
 
