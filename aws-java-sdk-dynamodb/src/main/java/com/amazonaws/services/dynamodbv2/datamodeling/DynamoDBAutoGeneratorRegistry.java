@@ -20,7 +20,7 @@ import java.util.UUID;
 /**
  * Helper for auto-generating attribute values.
  */
-final class DynamoDBAutoGeneratorRegistry {
+public final class DynamoDBAutoGeneratorRegistry {
 
     /**
      * The default instance.
@@ -31,7 +31,7 @@ final class DynamoDBAutoGeneratorRegistry {
      * Gets the default instance.
      * @return The default instance.
      */
-    static final DynamoDBAutoGeneratorRegistry instance() {
+    public static final DynamoDBAutoGeneratorRegistry instance() {
         return INSTANCE;
     }
 
@@ -40,7 +40,7 @@ final class DynamoDBAutoGeneratorRegistry {
      * @param clazz The class.
      * @return The generator.
      */
-    final Generator<Object> generatorOf(final Generators type, final Class<?> clazz) {
+    public final Generator<Object> generatorOf(final Generators type, final Class<?> clazz) {
         final Generator<? extends Object> result = type.generatorOf(clazz);
         return (Generator<Object>)result;
     }
@@ -48,7 +48,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Defines the generator categories.
      */
-    static enum Generators implements GeneratorFactory {
+    public static enum Generators implements GeneratorFactory {
         /**
          * The never generator.
          */
@@ -95,7 +95,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Factory for returning generator instances.
      */
-    static interface GeneratorFactory {
+    public static interface GeneratorFactory {
         /**
          * Gets the generator for the given class.
          * @param clazz The class.
@@ -107,7 +107,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Generator for auto-generating attribute values.
      */
-    static interface Generator<T> {
+    public static interface Generator<T> {
         /**
          * Determines if the value can be auto-generated for the object.
          * @param currentValue The current attribute value.
@@ -126,7 +126,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Generator which never generates.
      */
-    static final class NeverGenerator implements Generator<Object> {
+    public static final class NeverGenerator implements Generator<Object> {
         private static final Generator<Object> INSTANCE = new NeverGenerator();
 
         @Override
@@ -143,7 +143,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Base generator for keys.
      */
-    static abstract class AbstractKeyGenerator<T> implements Generator<T> {
+    public static abstract class AbstractKeyGenerator<T> implements Generator<T> {
         @Override
         public final boolean canGenerate(final T currentValue) {
             return (currentValue == null);
@@ -153,7 +153,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Never generator for key.
      */
-    static final class NeverKeyGenerator extends AbstractKeyGenerator<Object> {
+    public static final class NeverKeyGenerator extends AbstractKeyGenerator<Object> {
         private static final Generator<Object> INSTANCE = new NeverKeyGenerator();
 
         @Override
@@ -165,7 +165,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Key generator for UUID strings.
      */
-    static final class UuidStringKeyGenerator extends AbstractKeyGenerator<String> {
+    public static final class UuidStringKeyGenerator extends AbstractKeyGenerator<String> {
         private static final Generator<String> INSTANCE = new UuidStringKeyGenerator();
 
         @Override
@@ -177,7 +177,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Base generator for versions.
      */
-    static abstract class AbstractVersionGenerator<T> implements Generator<T> {
+    public static abstract class AbstractVersionGenerator<T> implements Generator<T> {
         @Override
         public final boolean canGenerate(final T currentValue) {
             return true;
@@ -187,7 +187,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Never generator for version.
      */
-    static final class NeverVersionGenerator extends AbstractVersionGenerator<Object> {
+    public static final class NeverVersionGenerator extends AbstractVersionGenerator<Object> {
         private static final Generator<Object> INSTANCE = new NeverVersionGenerator();
 
         @Override
@@ -199,7 +199,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Version generator for {@code BigInteger} types.
      */
-    static final class BigIntegerVersionGenerator extends AbstractVersionGenerator<BigInteger> {
+    public static final class BigIntegerVersionGenerator extends AbstractVersionGenerator<BigInteger> {
         private static final Generator<BigInteger> INSTANCE = new BigIntegerVersionGenerator();
 
         @Override
@@ -214,7 +214,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Version generator for {@code Byte} types.
      */
-    static final class ByteVersionGenerator extends AbstractVersionGenerator<Byte> {
+    public static final class ByteVersionGenerator extends AbstractVersionGenerator<Byte> {
         private static final Generator<Byte> INSTANCE = new ByteVersionGenerator();
 
         @Override
@@ -230,7 +230,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Version generator for {@code Integer} types.
      */
-    static final class IntegerVersionGenerator extends AbstractVersionGenerator<Integer> {
+    public static final class IntegerVersionGenerator extends AbstractVersionGenerator<Integer> {
         private static final Generator<Integer> INSTANCE = new IntegerVersionGenerator();
 
         @Override
@@ -245,7 +245,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Version generator for {@code Long} types.
      */
-    static final class LongVersionGenerator extends AbstractVersionGenerator<Long> {
+    public static final class LongVersionGenerator extends AbstractVersionGenerator<Long> {
         private static final Generator<Long> INSTANCE = new LongVersionGenerator();
 
         @Override
@@ -260,7 +260,7 @@ final class DynamoDBAutoGeneratorRegistry {
     /**
      * Version generator for {@code Short} types.
      */
-    static final class ShortVersionGenerator extends AbstractVersionGenerator<Short> {
+    public static final class ShortVersionGenerator extends AbstractVersionGenerator<Short> {
         private static final Generator<Short> INSTANCE = new ShortVersionGenerator();
 
         @Override

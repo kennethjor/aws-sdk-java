@@ -14,23 +14,18 @@
  */
 package com.amazonaws.services.dynamodbv2.datamodeling;
 
+import org.apache.http.annotation.GuardedBy;
+
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.apache.http.annotation.GuardedBy;
-
 /**
  * Reflection assistant for {@link DynamoDBMapper}
  */
-class DynamoDBReflector {
-
+public class DynamoDBReflector {
     /*
      * Several caches for performance. Collectively, they can make this class
      * over twice as fast.
@@ -38,6 +33,7 @@ class DynamoDBReflector {
     private final Map<Class<?>, Collection<Method>> getterCache = new HashMap<Class<?>, Collection<Method>>();
     private final Map<Class<?>, Method> primaryHashKeyGetterCache = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Method> primaryRangeKeyGetterCache = new HashMap<Class<?>, Method>();
+    private final Map<Class<?>, Collection<Method>> primaryKeyGetterCache = new HashMap<Class<?>, Collection<Method>>();
 
     /*
      * All caches keyed by a Method use the getter for a particular mapped
@@ -59,7 +55,7 @@ class DynamoDBReflector {
      * Returns the set of getter methods which are relevant when marshalling or
      * unmarshalling an object.
      */
-    Collection<Method> getRelevantGetters(Class<?> clazz) {
+    public Collection<Method> getRelevantGetters(Class<?> clazz) {
         synchronized (getterCache) {
             if ( !getterCache.containsKey(clazz) ) {
                 List<Method> relevantGetters = findRelevantGetters(clazz);
@@ -102,7 +98,7 @@ class DynamoDBReflector {
      * Returns the annotated {@link DynamoDBRangeKey} getter for the class
      * given, or null if the class doesn't have one.
      */
-    <T> Method getPrimaryRangeKeyGetter(Class<T> clazz) {
+    public <T> Method getPrimaryRangeKeyGetter(Class<T> clazz) {
         synchronized (primaryRangeKeyGetterCache) {
             if ( !primaryRangeKeyGetterCache.containsKey(clazz) ) {
                 Method rangeKeyMethod = null;
@@ -123,19 +119,22 @@ class DynamoDBReflector {
      * Returns all annotated {@link DynamoDBHashKey} and
      * {@link DynamoDBRangeKey} getters for the class given, throwing an
      * exception if there isn't one.
-     *
-     * TODO: caching
      */
-    <T> Collection<Method> getPrimaryKeyGetters(Class<T> clazz) {
-        List<Method> keyGetters = new LinkedList<Method>();
-        for (Method getter : getRelevantGetters(clazz)) {
-            if (ReflectionUtils.getterOrFieldHasAnnotation(getter, DynamoDBHashKey.class)
-                    || ReflectionUtils.getterOrFieldHasAnnotation(getter, DynamoDBRangeKey.class)) {
-                keyGetters.add(getter);
+    public <T> Collection<Method> getPrimaryKeyGetters(Class<T> clazz) {
+        synchronized (primaryKeyGetterCache) {
+            if ( !primaryKeyGetterCache.containsKey(clazz) ) {
+                List<Method> keyGetters = new LinkedList<Method>();
+                for (Method getter : getRelevantGetters(clazz)) {
+                    if (ReflectionUtils.getterOrFieldHasAnnotation(getter, DynamoDBHashKey.class)
+                            || ReflectionUtils.getterOrFieldHasAnnotation(getter, DynamoDBRangeKey.class)) {
+                        keyGetters.add(getter);
+                    }
+                }
+                primaryKeyGetterCache.put(clazz, keyGetters);
             }
-        }
 
-        return keyGetters;
+            return primaryKeyGetterCache.get(clazz);
+        }
     }
 
 
@@ -143,7 +142,7 @@ class DynamoDBReflector {
      * Returns the annotated {@link DynamoDBHashKey} getter for the class given,
      * throwing an exception if there isn't one.
      */
-    <T> Method getPrimaryHashKeyGetter(Class<T> clazz) {
+    public <T> Method getPrimaryHashKeyGetter(Class<T> clazz) {
         Method hashKeyMethod;
         synchronized (primaryHashKeyGetterCache) {
             if ( !primaryHashKeyGetterCache.containsKey(clazz) ) {
@@ -179,7 +178,7 @@ class DynamoDBReflector {
     /**
      * Returns the attribute name corresponding to the given getter method.
      */
-    String getAttributeName(Method getter) {
+    public String getAttributeName(Method getter) {
         String attributeName;
         readLockAttrName.lock();
         try {
@@ -245,7 +244,7 @@ class DynamoDBReflector {
      * Returns the setter corresponding to the getter given, or null if no such
      * setter exists.
      */
-    Method getSetter(Method getter) {
+    public Method getSetter(Method getter) {
         synchronized (setterCache) {
             if ( !setterCache.containsKey(getter) ) {
                 String fieldName = ReflectionUtils.getFieldNameByGetter(getter, false);
@@ -270,7 +269,7 @@ class DynamoDBReflector {
      * Returns whether the method given is an annotated, no-args getter of a
      * version attribute.
      */
-    boolean isVersionAttributeGetter(Method getter) {
+    public boolean isVersionAttributeGetter(Method getter) {
         synchronized (versionAttributeGetterCache) {
             if ( !versionAttributeGetterCache.containsKey(getter) ) {
                 versionAttributeGetterCache.put(
@@ -285,7 +284,7 @@ class DynamoDBReflector {
     /**
      * Returns whether the method given is an assignable key getter.
      */
-    boolean isAssignableKey(Method getter) {
+    public boolean isAssignableKey(Method getter) {
         synchronized (autoGeneratedKeyGetterCache) {
             if ( !autoGeneratedKeyGetterCache.containsKey(getter) ) {
                 autoGeneratedKeyGetterCache.put(
@@ -303,7 +302,7 @@ class DynamoDBReflector {
     /**
      * Returns the name of the primary hash key.
      */
-    String getPrimaryHashKeyName(Class<?> clazz) {
+    public String getPrimaryHashKeyName(Class<?> clazz) {
         return getAttributeName(getPrimaryHashKeyGetter(clazz));
     }
 
@@ -311,7 +310,7 @@ class DynamoDBReflector {
      * Returns the name of the primary range key, or null if the table does not
      * one.
      */
-    String getPrimaryRangeKeyName(Class<?> clazz) {
+    public String getPrimaryRangeKeyName(Class<?> clazz) {
         Method primaryRangeKeyGetter = getPrimaryHashKeyGetter(clazz);
         return primaryRangeKeyGetter == null ?
                 null
@@ -323,7 +322,7 @@ class DynamoDBReflector {
      * Returns true if and only if the specified class has declared a
      * primary range key.
      */
-    boolean hasPrimaryRangeKey(Class<?> clazz) {
+    public boolean hasPrimaryRangeKey(Class<?> clazz) {
         return getPrimaryRangeKeyGetter(clazz) != null;
     }
 }
